@@ -5,15 +5,77 @@ import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import net.minecraft.server.v1_8_R3.*
 import org.bukkit.Bukkit
+import org.bukkit.Material
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer
 import org.bukkit.entity.Player
+import java.util.*
 
 
 class PacketDecoder(
     private val player: Player,
     private val settings: Settings
 ) : ChannelDuplexHandler() {
+
+    companion object {
+        private val INTERACTABLE_BLOCKS = EnumSet.of(
+            Material.DISPENSER,
+            Material.NOTE_BLOCK,
+            Material.CHEST,
+            Material.WORKBENCH,
+            Material.FURNACE,
+            Material.BURNING_FURNACE,
+            Material.LEVER,
+            Material.STONE_BUTTON,
+            Material.FENCE,
+            Material.TRAP_DOOR,
+            Material.FENCE_GATE,
+            Material.NETHER_FENCE,
+            Material.ENCHANTMENT_TABLE,
+            Material.ENDER_CHEST,
+            Material.BEACON,
+            Material.WOOD_BUTTON,
+            Material.ANVIL,
+            Material.TRAPPED_CHEST,
+            Material.DAYLIGHT_DETECTOR,
+            Material.DAYLIGHT_DETECTOR_INVERTED,
+            Material.HOPPER,
+            Material.DROPPER,
+            Material.IRON_TRAPDOOR,
+            Material.SPRUCE_FENCE,
+            Material.BIRCH_FENCE,
+            Material.JUNGLE_FENCE,
+            Material.DARK_OAK_FENCE,
+            Material.ACACIA_FENCE,
+            Material.SPRUCE_FENCE_GATE,
+            Material.BIRCH_FENCE_GATE,
+            Material.JUNGLE_FENCE_GATE,
+            Material.DARK_OAK_FENCE_GATE,
+            Material.ACACIA_FENCE_GATE,
+            Material.SIGN_POST,
+            Material.WALL_SIGN,
+            Material.WOODEN_DOOR,
+            Material.IRON_DOOR_BLOCK,
+            Material.CAKE_BLOCK,
+            Material.BED_BLOCK,
+            Material.DIODE_BLOCK_ON,
+            Material.DIODE_BLOCK_OFF,
+            Material.BREWING_STAND,
+            Material.CAULDRON,
+            Material.ITEM_FRAME,
+            Material.FLOWER_POT,
+            Material.REDSTONE_COMPARATOR,
+            Material.REDSTONE_COMPARATOR_OFF,
+            Material.REDSTONE_COMPARATOR_ON,
+            Material.SPRUCE_DOOR,
+            Material.BIRCH_DOOR,
+            Material.JUNGLE_DOOR,
+            Material.ACACIA_DOOR,
+            Material.DARK_OAK_DOOR,
+            Material.COMMAND
+        )
+    }
+
     private var sentBlock = false
 
     override fun channelRead(context: ChannelHandlerContext, message: Any) {
@@ -41,6 +103,7 @@ class PacketDecoder(
         return true
     }
 
+    @Suppress("DEPRECATION")
     private fun handleBlockPlacePacket(packet: PacketPlayInBlockPlace): Boolean {
         val blockPlaced = packet.face != 255
         val hasItem = packet.itemStack != null && packet.itemStack.item != null
@@ -53,7 +116,9 @@ class PacketDecoder(
         val position = packet.a()
 
         val block = worldServer.getType(position).block
-        val isInteractable = block is BlockContainer
+        val material = Material.getMaterial(Block.getId(block))
+
+        val isInteractable = material in INTERACTABLE_BLOCKS
         val sneaking = player.isSneaking
 
         if (!isBlock || (isInteractable && !sneaking)) return true
