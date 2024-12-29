@@ -67,8 +67,8 @@ punishments:
 
 ## Support
 If you encounter any issues or have suggestions, please:
-1. Check the [known issues](https://github.com/quadflame/AutoPlacePatch)
-2. Create a new [issue](https://github.com/quadflame/AutoPlacePatch)
+1. Check the [known issues](https://github.com/quadflame/AutoPlacePatch/issues)
+2. Create a new [issue](https://github.com/quadflame/AutoPlacePatch/issues/new)
 
 ## Contributing
 1. Fork the repository
