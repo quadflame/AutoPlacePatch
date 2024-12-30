@@ -9,7 +9,7 @@ A lightweight Spigot plugin that detects and prevents AutoPlace hacks in Minecra
 - Written in Kotlin for modern development practices
 
 ## Current Bypasses
-- Building with slabs
+- AutoPlacing with slabs
 
 ## Installation
 1. Download the latest release from the [releases page](https://github.com/quadflame/AutoPlacePatch/releases)
