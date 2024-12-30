@@ -11,11 +11,29 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer
 import org.bukkit.entity.Player
 import java.util.*
 
+/**
+ * Decodes incoming packets to detect auto-place behavior.
+ *
+ * This class decodes incoming packets to detect auto-place behavior by players. When a player
+ * places a block, the packet decoder checks if the block placement is valid and alerts staff
+ * members if necessary. The decoder optionally patches the block placement to prevent the block from
+ * being placed if it is invalid.
+ *
+ * @param player The player to decode packets for
+ * @param settings The Settings instance to manage configuration settings
+ * @see Settings
+ * @property lastLocation The last known location of the player
+ * @property sentBlock Whether a block placement packet has already been sent
+ * @since 1.0.0
+ */
 class PacketDecoder(
     private val player: Player,
     private val settings: Settings
 ) : ChannelDuplexHandler() {
 
+    /**
+     * A set of interactable blocks that should be ignored for auto-place detection.
+     */
     companion object {
         private val INTERACTABLE_BLOCKS = EnumSet.of(
             Material.DISPENSER,
@@ -78,6 +96,14 @@ class PacketDecoder(
     private var lastLocation = player.location
     private var sentBlock = false
 
+    /**
+     * Handles incoming packets to detect auto-place behavior.
+     *
+     * This method handles incoming messages by dispatching packets and cancelling the message if necessary.
+     *
+     * @param context The channel context
+     * @param message The incoming packet
+     */
     override fun channelRead(context: ChannelHandlerContext, message: Any) {
         var cancel = false
 
@@ -90,6 +116,14 @@ class PacketDecoder(
         super.channelRead(context, message)
     }
 
+    /**
+     * Handles incoming packets to detect auto-place behavior.
+     *
+     * This method handles incoming packets by dispatching them to the appropriate packet handler
+     *
+     * @param packet The incoming packet
+     * @return true if the packet should be allowed, false otherwise
+     */
     private fun handlePacket(packet: Packet<*>): Boolean {
         return when (packet) {
             is PacketPlayInBlockPlace -> handleBlockPlacePacket(packet)
@@ -98,6 +132,15 @@ class PacketDecoder(
         }
     }
 
+    /**
+     * Handles incoming flying packets to update the player's last known location.
+     *
+     * This method handles incoming flying packets to update the player's last known location
+     * and resets the sentBlock flag.
+     *
+     * @param packet The incoming flying packet
+     * @return true if the packet should be allowed, false otherwise
+     */
     private fun handleFlyPacket(packet: PacketPlayInFlying): Boolean {
         sentBlock = false
 
@@ -117,20 +160,34 @@ class PacketDecoder(
         return true
     }
 
+    /**
+     * Handles incoming block placement packets to detect auto-place behavior.
+     *
+     * This method handles incoming block placement packets to detect auto-place behavior by players.
+     * If a player is caught auto-placing, staff members are alerted and the block placement is optionally
+     * patched to prevent the block from being placed.
+     *
+     * @param packet The incoming block placement packet
+     * @return true if the packet should be allowed, false otherwise
+     */
     @Suppress("DEPRECATION")
     private fun handleBlockPlacePacket(packet: PacketPlayInBlockPlace): Boolean {
 
+        // Checks if no block placement
         val blockPlaced = packet.face != 255
         val hasItem = packet.itemStack != null && packet.itemStack.item != null
         if (!blockPlaced || !hasItem) return true
 
+        // Checks if item is not a block
         val item = packet.itemStack.item
         val isBlock = item is ItemBlock
         if(!isBlock) return true
 
+        // Ignores slabs
         val isSlab = item is ItemStep
         if(isSlab) return true
 
+        // Checks if block is interactable
         val worldServer = (player.world as CraftWorld).handle
         val position = packet.a()
         val block = worldServer.getType(position).block
@@ -140,13 +197,14 @@ class PacketDecoder(
         val sneaking = player.isSneaking
         if (isInteractable && !sneaking) return true
 
-        val entityPlayer = (player as CraftPlayer).handle
+        // Checks if block is already set
         val direction = EnumDirection.fromType1(packet.face)
         val shifted = position.shift(direction)
 
         val isAir = worldServer.getType(shifted).block == Blocks.AIR
         if (!isAir) return true
 
+        // Checks bounding box for 1.9+ clients that send invalid block placements
         val height = 1.8
         val width = 0.6
         val halfWidth = width / 2.0
@@ -170,11 +228,13 @@ class PacketDecoder(
         val isInside = playerBoundingBox.b(blockBoundingBox)
         if(isInside) return true
 
+        // Checks if block placement is valid
         if (!sentBlock) {
             sentBlock = true
             return true
         }
 
+        // Alerts staff members of auto-place behavior
         if(settings.shouldAlert()) {
             val message = settings.getAlertMessage(player)
             val permission = settings.getAlertPermission()
@@ -182,12 +242,16 @@ class PacketDecoder(
             Bukkit.broadcast(message, permission)
         }
 
+        // Punishes the player for auto-place behavior
         if(settings.shouldPunish()) {
             val command = settings.getPunishmentCommand(player)
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command)
         }
 
+        // Patches the block placement to prevent the block from being placed
         if(settings.shouldPatch()) {
+            val entityPlayer = (player as CraftPlayer).handle
+
             val inventory = entityPlayer.inventory
             val container = entityPlayer.activeContainer
             val slot = container.getSlot(inventory, inventory.itemInHandIndex)

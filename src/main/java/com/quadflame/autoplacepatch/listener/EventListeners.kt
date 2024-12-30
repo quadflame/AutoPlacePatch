@@ -7,14 +7,37 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
 
+/**
+ * Listens for player join and quit events to inject and uninject packet decoders.
+ *
+ * This class listens for player join and quit events to inject and uninject packet decoders
+ * for auto-place detection. When a player joins, a new packet decoder is injected into the
+ * player's network channel to monitor block placements. When a player quits, the packet decoder
+ * is removed to prevent memory leaks.
+ *
+ * @param plugin The JavaPlugin instance this listener belongs to
+ * @property injector The PacketInjector instance to manage packet decoders
+ * @see PacketInjector
+ * @since 1.0.0
+ */
 class EventListeners(plugin: JavaPlugin) : Listener {
     private val injector = PacketInjector(plugin)
 
+    /**
+     * Injects the packet decoder into the player's network channel when they join the server.
+     *
+     * @param event The PlayerJoinEvent instance
+     */
     @EventHandler
     fun onJoin(event: PlayerJoinEvent) {
         injector.inject(event.player)
     }
 
+    /**
+     * Removes the packet decoder from the player's network channel when they quit the server.
+     *
+     * @param event The PlayerQuitEvent instance
+     */
     @EventHandler
     fun onQuit(event: PlayerQuitEvent) {
         injector.uninject(event.player)
