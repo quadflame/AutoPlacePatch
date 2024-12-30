@@ -11,7 +11,6 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer
 import org.bukkit.entity.Player
 import java.util.*
 
-
 class PacketDecoder(
     private val player: Player,
     private val settings: Settings
@@ -76,6 +75,7 @@ class PacketDecoder(
         )
     }
 
+    private var lastLocation = player.location
     private var sentBlock = false
 
     override fun channelRead(context: ChannelHandlerContext, message: Any) {
@@ -93,35 +93,82 @@ class PacketDecoder(
     private fun handlePacket(packet: Packet<*>): Boolean {
         return when (packet) {
             is PacketPlayInBlockPlace -> handleBlockPlacePacket(packet)
-            is PacketPlayInFlying -> handleFlyPacket()
+            is PacketPlayInFlying -> handleFlyPacket(packet)
             else -> true
         }
     }
 
-    private fun handleFlyPacket(): Boolean {
+    private fun handleFlyPacket(packet: PacketPlayInFlying): Boolean {
         sentBlock = false
+
+        if(packet.g()) {
+            lastLocation.x = packet.a()
+            lastLocation.y = packet.b()
+            lastLocation.z = packet.c()
+        }
+
+        if(packet.h()) {
+            lastLocation.yaw = packet.d()
+            lastLocation.pitch = packet.e()
+        }
+
+        lastLocation.world = player.world
+
         return true
     }
 
     @Suppress("DEPRECATION")
     private fun handleBlockPlacePacket(packet: PacketPlayInBlockPlace): Boolean {
+
         val blockPlaced = packet.face != 255
         val hasItem = packet.itemStack != null && packet.itemStack.item != null
-
         if (!blockPlaced || !hasItem) return true
 
-        val isBlock = packet.itemStack.item is ItemBlock
+        val item = packet.itemStack.item
+        val isBlock = item is ItemBlock
+        if(!isBlock) return true
+
+        val isSlab = item is ItemStep
+        if(isSlab) return true
 
         val worldServer = (player.world as CraftWorld).handle
         val position = packet.a()
-
         val block = worldServer.getType(position).block
         val material = Material.getMaterial(Block.getId(block))
 
         val isInteractable = material in INTERACTABLE_BLOCKS
         val sneaking = player.isSneaking
+        if (isInteractable && !sneaking) return true
 
-        if (!isBlock || (isInteractable && !sneaking)) return true
+        val entityPlayer = (player as CraftPlayer).handle
+        val direction = EnumDirection.fromType1(packet.face)
+        val shifted = position.shift(direction)
+
+        val isAir = worldServer.getType(shifted).block == Blocks.AIR
+        if (!isAir) return true
+
+        val height = 1.8
+        val width = 0.6
+        val halfWidth = width / 2.0
+        val playerBoundingBox = AxisAlignedBB(
+            lastLocation.x - halfWidth,
+            lastLocation.y,
+            lastLocation.z - halfWidth,
+            lastLocation.x + halfWidth,
+            lastLocation.y + height,
+            lastLocation.z + halfWidth
+        )
+        val blockBoundingBox = AxisAlignedBB(
+            shifted.x.toDouble(),
+            shifted.y.toDouble(),
+            shifted.z.toDouble(),
+            shifted.x + 1.0,
+            shifted.y + 1.0,
+            shifted.z + 1.0
+        )
+
+        val isInside = playerBoundingBox.b(blockBoundingBox)
+        if(isInside) return true
 
         if (!sentBlock) {
             sentBlock = true
@@ -141,16 +188,11 @@ class PacketDecoder(
         }
 
         if(settings.shouldPatch()) {
-            val entityPlayer = (player as CraftPlayer).handle
-
             val inventory = entityPlayer.inventory
             val container = entityPlayer.activeContainer
             val slot = container.getSlot(inventory, inventory.itemInHandIndex)
             val windowId = container.windowId
             val rawSlotIndex = slot.rawSlotIndex
-
-            val direction = EnumDirection.fromType1(packet.face)
-            val shifted = position.shift(direction)
 
             val connection = entityPlayer.playerConnection
 
