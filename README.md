@@ -2,22 +2,22 @@
 A lightweight Spigot plugin that detects and prevents AutoPlace hacks in Minecraft 1.8.8. Originally developed for private use, now available to the public.
 
 ## Features
-
 - Optimized detection of AutoPlace hacks
 - Customizable staff alerts
 - Configurable punishment system
 - Minimal performance impact
 - Written in Kotlin for modern development practices
 
-## Installation
+## Current Bypasses
+- AutoPlacing with slabs
 
+## Installation
 1. Download the latest release from the [releases page](https://github.com/quadflame/AutoPlacePatch/releases)
 2. Place the `.jar` file in your server's `plugins` folder
 3. Restart your server
 4. The config file will be generated automatically
 
 ## Configuration
-
 ```yaml
 alerts:
   enabled: true
