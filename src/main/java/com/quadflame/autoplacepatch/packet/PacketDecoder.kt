@@ -1,10 +1,12 @@
 package com.quadflame.autoplacepatch.packet
 
+import com.quadflame.autoplacepatch.AutoPlacePatch
 import com.quadflame.autoplacepatch.config.Settings
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import net.minecraft.server.v1_8_R3.*
 import org.bukkit.Bukkit
+import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer
@@ -20,15 +22,17 @@ import java.util.*
  * being placed if it is invalid.
  *
  * @param player The player to decode packets for
- * @param settings The Settings instance to manage configuration settings
+ * @param plugin The AutoPlacePatch instance this decoder belongs to
  * @see Settings
+ * @property settings The Settings instance to manage configuration settings
+ * @property requestedBlock The last block requested by the player
  * @property lastLocation The last known location of the player
  * @property sentBlock Whether a block placement packet has already been sent
  * @since 1.0.0
  */
 class PacketDecoder(
     private val player: Player,
-    private val settings: Settings
+    private val plugin: AutoPlacePatch
 ) : ChannelDuplexHandler() {
 
     /**
@@ -93,6 +97,8 @@ class PacketDecoder(
         )
     }
 
+    private val settings = plugin.settings
+    private var requestedBlock = BlockPosition(0, 0, 0)
     private var lastLocation = player.location
     private var sentBlock = false
 
@@ -173,6 +179,10 @@ class PacketDecoder(
     @Suppress("DEPRECATION")
     private fun handleBlockPlacePacket(packet: PacketPlayInBlockPlace): Boolean {
 
+        // Ignores players in adventure or spectator mode
+        val invalidGamemode = player.gameMode == GameMode.ADVENTURE || player.gameMode == GameMode.SPECTATOR
+        if(invalidGamemode) return true
+
         // Checks if no block placement
         val blockPlaced = packet.face != 255
         val hasItem = packet.itemStack != null && packet.itemStack.item != null
@@ -203,6 +213,13 @@ class PacketDecoder(
 
         val isAir = worldServer.getType(shifted).block == Blocks.AIR
         if (!isAir) return true
+
+        val isViaVersionPresent = Bukkit.getPluginManager().getPlugin("ViaVersion") != null
+        if(isViaVersionPresent) {
+            val similarBlock = requestedBlock == shifted
+            if (similarBlock) return true
+            requestedBlock = shifted
+        }
 
         // Checks bounding box for 1.9+ clients that send invalid block placements
         val height = 1.8
@@ -239,7 +256,10 @@ class PacketDecoder(
             val message = settings.getAlertMessage(player)
             val permission = settings.getAlertPermission()
 
-            Bukkit.broadcast(message, permission)
+            Bukkit.getOnlinePlayers()
+                .filter { it.hasPermission(permission) }
+                .filter { plugin.userManager.getUser(it).alerts }
+                .forEach { it.sendMessage(message) }
         }
 
         // Punishes the player for auto-place behavior
@@ -249,7 +269,7 @@ class PacketDecoder(
         }
 
         // Patches the block placement to prevent the block from being placed
-        if(settings.shouldPatch()) {
+        if(settings.shouldCancel()) {
             val entityPlayer = (player as CraftPlayer).handle
 
             val inventory = entityPlayer.inventory

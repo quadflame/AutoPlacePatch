@@ -19,13 +19,13 @@ A lightweight Spigot plugin that detects and prevents AutoPlace hacks in Minecra
 
 ## Configuration
 ```yaml
+patch:
+  cancel: false
+
 alerts:
   enabled: true
   message: "&c%player% has been flagged for autoplace!"
   permission: "autoplacepatch.alerts"
-
-patch:
-  enabled: true
 
 punishments:
   enabled: false
@@ -33,16 +33,16 @@ punishments:
 ```
 
 ### Configuration Options
-| Option | Description | Default |
-|--------|-------------|---------|
-| alerts.enabled | Toggle staff notifications | true |
-| alerts.message | Alert message with placeholders | "&c%player% has been flagged for autoplace!" |
-| alerts.permission | Permission node for receiving alerts | "autoplacepatch.alerts" |
-| patch.enabled | Cancel invalid block placements | true |
-| punishments.enabled | Enable automatic punishments | false |
-| punishments.command | Punishment command with placeholders | "ban %player% 30d AutoPlace" |
+| Option              | Description                          | Default                                      |
+|---------------------|--------------------------------------|----------------------------------------------|
+| patch.cancel        | Cancel invalid block placements      | false                                        |
+| alerts.enabled      | Toggle staff notifications           | true                                         |
+| alerts.message      | Alert message with placeholders      | "&c%player% has been flagged for autoplace!" |
+| alerts.permission   | Permission node for receiving alerts | "autoplacepatch.alerts"                      |
+| punishments.enabled | Enable automatic punishments         | false                                        |
+| punishments.command | Punishment command with placeholders | "ban %player% 30d AutoPlace"                 |
 
-## Placeholders
+### Placeholders
 - `%player%` - Player's name
 - `%uuid%` - Player's UUID
 

@@ -1,8 +1,8 @@
 package com.quadflame.autoplacepatch.config
 
+import com.quadflame.autoplacepatch.AutoPlacePatch
 import org.bukkit.ChatColor
 import org.bukkit.entity.Player
-import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.configuration.file.FileConfiguration
 
 /**
@@ -12,13 +12,25 @@ import org.bukkit.configuration.file.FileConfiguration
  * from the plugin's config.yml file, including alert settings, punishment configurations,
  * and patch toggles.
  *
- * @param plugin The JavaPlugin instance this settings manager belongs to
+ * @param plugin The AutoPlacePatch instance this settings manager belongs to
  * @property config The FileConfiguration instance representing config.yml
  * @see FileConfiguration
  * @since 1.0.0
  */
-class Settings(plugin: JavaPlugin) {
+class Settings(private val plugin: AutoPlacePatch) {
     private val config = plugin.config
+
+    /**
+     * Checks if the auto-place exploit patch is enabled.
+     * Patching will cancel the block placement packet if the player is caught auto-placing.
+     *
+     * Configuration path: `patch.enabled`
+     *
+     * @return true if the patch is enabled, false otherwise
+     */
+    fun shouldCancel(): Boolean {
+        return config.getBoolean("patch.cancel")
+    }
 
     /**
      * Checks if staff alerts are enabled for auto-place detection.
@@ -61,18 +73,6 @@ class Settings(plugin: JavaPlugin) {
      */
     fun getAlertPermission(): String {
         return config.getString("alerts.permission")
-    }
-
-    /**
-     * Checks if the auto-place exploit patch is enabled.
-     * Patching will cancel the block placement packet if the player is caught auto-placing.
-     *
-     * Configuration path: `patch.enabled`
-     *
-     * @return true if the patch is enabled, false otherwise
-     */
-    fun shouldPatch(): Boolean {
-        return config.getBoolean("patch.enabled")
     }
 
     /**

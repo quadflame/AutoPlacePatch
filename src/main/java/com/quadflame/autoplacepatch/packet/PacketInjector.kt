@@ -1,10 +1,10 @@
 package com.quadflame.autoplacepatch.packet
 
+import com.quadflame.autoplacepatch.AutoPlacePatch
 import com.quadflame.autoplacepatch.config.Settings
 import io.netty.channel.ChannelPipeline
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer
 import org.bukkit.entity.Player
-import org.bukkit.plugin.java.JavaPlugin
 
 /**
  * Injects and uninjects packet decoders for auto-place detection.
@@ -14,16 +14,14 @@ import org.bukkit.plugin.java.JavaPlugin
  * to monitor block placements. When a player quits the server, the packet decoder is removed to prevent
  * memory leaks.
  *
- * @param plugin The JavaPlugin instance this injector belongs to
+ * @param plugin The AutoPlacePatch instance this injector belongs to
  * @property packetDecoders A map of players to their respective packet decoders
- * @property settings The Settings instance to manage configuration settings
  * @see PacketDecoder
  * @see Settings
  * @since 1.0.0
  */
-class PacketInjector(plugin: JavaPlugin) {
+class PacketInjector(private val plugin: AutoPlacePatch) {
     private val packetDecoders = mutableMapOf<Player, PacketDecoder>()
-    private val settings = Settings(plugin)
 
     /**
      * Injects the packet decoder into the player's network channel.
@@ -31,7 +29,7 @@ class PacketInjector(plugin: JavaPlugin) {
      * @param player The player to inject the packet decoder for
      */
     fun inject(player: Player) {
-        val decoder = PacketDecoder(player, settings)
+        val decoder = PacketDecoder(player, plugin)
         packetDecoders += player to decoder
         getPipeline(player).addAfter("decoder", "autoplacepatch-decoder", decoder)
     }

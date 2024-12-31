@@ -1,11 +1,11 @@
 package com.quadflame.autoplacepatch.listener
 
+import com.quadflame.autoplacepatch.AutoPlacePatch
 import com.quadflame.autoplacepatch.packet.PacketInjector
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.plugin.java.JavaPlugin
 
 /**
  * Listens for player join and quit events to inject and uninject packet decoders.
@@ -15,12 +15,12 @@ import org.bukkit.plugin.java.JavaPlugin
  * player's network channel to monitor block placements. When a player quits, the packet decoder
  * is removed to prevent memory leaks.
  *
- * @param plugin The JavaPlugin instance this listener belongs to
+ * @param plugin The AutoPlacePatch instance this listener belongs to
  * @property injector The PacketInjector instance to manage packet decoders
  * @see PacketInjector
  * @since 1.0.0
  */
-class EventListeners(plugin: JavaPlugin) : Listener {
+class EventListeners(private val plugin: AutoPlacePatch) : Listener {
     private val injector = PacketInjector(plugin)
 
     /**
@@ -41,5 +41,6 @@ class EventListeners(plugin: JavaPlugin) : Listener {
     @EventHandler
     fun onQuit(event: PlayerQuitEvent) {
         injector.uninject(event.player)
+        plugin.userManager.removeUser(event.player)
     }
 }

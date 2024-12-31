@@ -1,6 +1,9 @@
 package com.quadflame.autoplacepatch
 
+import com.quadflame.autoplacepatch.command.AutoPlacePatchCommand
+import com.quadflame.autoplacepatch.config.Settings
 import com.quadflame.autoplacepatch.listener.EventListeners
+import com.quadflame.autoplacepatch.player.UserManager
 import org.bukkit.plugin.java.JavaPlugin
 
 /**
@@ -11,6 +14,8 @@ import org.bukkit.plugin.java.JavaPlugin
  * @since 1.0.0
  */
 class AutoPlacePatch : JavaPlugin() {
+    val settings = Settings(this)
+    val userManager = UserManager()
 
     /**
      * Called when the plugin is enabled.
@@ -20,6 +25,9 @@ class AutoPlacePatch : JavaPlugin() {
      */
     override fun onEnable() {
         saveDefaultConfig()
+        config.options().copyDefaults(true)
+
+        getCommand("autoplacepatch")?.executor = AutoPlacePatchCommand(this)
 
         val pluginManager = server.pluginManager
         pluginManager.registerEvents(EventListeners(this), this)

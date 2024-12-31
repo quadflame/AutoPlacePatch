@@ -1,3 +1,9 @@
+patch:
+  # Should invalid block placements be cancelled?
+  # Disable for slight optimization
+  # This is not required if punishments are enabled
+  cancel: false
+
 alerts:
   # Should alerts be enabled?
   # Sends a message to staff when a player is flagged for autoplace
@@ -12,12 +18,6 @@ alerts:
   # Required permission to see alerts
   permission: "autoplacepatch.alerts"
 
-patch:
-  # Should invalid block placements be cancelled?
-  # Disable for slight optimization
-  # This is not required if punishments are enabled
-  enabled: true
-
 punishments:
   # Should punishments be enabled?
   # Punishes players for invalid block placements
@@ -28,3 +28,4 @@ punishments:
   # %player% - Player's name
   # %uuid% - Player's UUID
   command: "ban %player% 30d AutoPlace"
+
