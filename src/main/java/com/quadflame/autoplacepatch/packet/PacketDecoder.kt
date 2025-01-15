@@ -93,7 +93,8 @@ class PacketDecoder(
             Material.JUNGLE_DOOR,
             Material.ACACIA_DOOR,
             Material.DARK_OAK_DOOR,
-            Material.COMMAND
+            Material.COMMAND,
+            Material.VINE
         )
     }
 
@@ -214,12 +215,9 @@ class PacketDecoder(
         val isAir = worldServer.getType(shifted).block == Blocks.AIR
         if (!isAir) return true
 
-        val isViaVersionPresent = Bukkit.getPluginManager().getPlugin("ViaVersion") != null
-        if(isViaVersionPresent) {
-            val similarBlock = requestedBlock == shifted
-            if (similarBlock) return true
-            requestedBlock = shifted
-        }
+        val similarBlock = requestedBlock == shifted
+        if (similarBlock) return true
+        requestedBlock = shifted
 
         // Checks bounding box for 1.9+ clients that send invalid block placements
         val height = 1.8
