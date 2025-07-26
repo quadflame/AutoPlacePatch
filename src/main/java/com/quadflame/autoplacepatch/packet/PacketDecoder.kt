@@ -39,6 +39,8 @@ class PacketDecoder(
      * A set of interactable blocks that should be ignored for auto-place detection.
      */
     companion object {
+        private const val HEIGHT = 1.8
+        private const val HALF_WIDTH = 0.6 / 2.0
         private val INTERACTABLE_BLOCKS = EnumSet.of(
             Material.DISPENSER,
             Material.NOTE_BLOCK,
@@ -181,32 +183,22 @@ class PacketDecoder(
     private fun handleBlockPlacePacket(packet: PacketPlayInBlockPlace): Boolean {
 
         // Ignores players in adventure or spectator mode
-        val invalidGamemode = player.gameMode == GameMode.ADVENTURE || player.gameMode == GameMode.SPECTATOR
-        if(invalidGamemode) return true
+        if(isGameModeInvalid()) return true
 
         // Checks if no block placement
-        val blockPlaced = packet.face != 255
-        val hasItem = packet.itemStack != null && packet.itemStack.item != null
-        if (!blockPlaced || !hasItem) return true
+        if (!isBlockPlaced(packet) || !hasItem(packet)) return true
 
         // Checks if item is not a block
-        val item = packet.itemStack.item
-        val isBlock = item is ItemBlock
-        if(!isBlock) return true
+        if(!isBlock(packet)) return true
 
         // Ignores slabs
-        val isSlab = item is ItemStep
-        if(isSlab) return true
+        if(isSlab(packet)) return true
 
-        // Checks if block is interactable
         val worldServer = (player.world as CraftWorld).handle
         val position = packet.a()
-        val block = worldServer.getType(position).block
-        val material = Material.getMaterial(Block.getId(block))
 
-        val isInteractable = material in INTERACTABLE_BLOCKS
-        val sneaking = player.isSneaking
-        if (isInteractable && !sneaking) return true
+        // Checks if block is interactable and not placed
+        if (isTargetInteractable(worldServer, position) && !isSneaking()) return true
 
         // Checks if block is already set
         val direction = EnumDirection.fromType1(packet.face)
@@ -220,28 +212,7 @@ class PacketDecoder(
         requestedBlock = shifted
 
         // Checks bounding box for 1.9+ clients that send invalid block placements
-        val height = 1.8
-        val width = 0.6
-        val halfWidth = width / 2.0
-        val playerBoundingBox = AxisAlignedBB(
-            lastLocation.x - halfWidth,
-            lastLocation.y,
-            lastLocation.z - halfWidth,
-            lastLocation.x + halfWidth,
-            lastLocation.y + height,
-            lastLocation.z + halfWidth
-        )
-        val blockBoundingBox = AxisAlignedBB(
-            shifted.x.toDouble(),
-            shifted.y.toDouble(),
-            shifted.z.toDouble(),
-            shifted.x + 1.0,
-            shifted.y + 1.0,
-            shifted.z + 1.0
-        )
-
-        val isInside = playerBoundingBox.b(blockBoundingBox)
-        if(isInside) return true
+        if(isPlayerInsideBlock(shifted)) return true
 
         // Checks if block placement is valid
         if (!sentBlock) {
@@ -286,5 +257,56 @@ class PacketDecoder(
         }
 
         return true
+    }
+
+    private fun isGameModeInvalid(): Boolean {
+        return player.gameMode == GameMode.ADVENTURE || player.gameMode == GameMode.SPECTATOR
+    }
+
+    private fun isBlockPlaced(packet: PacketPlayInBlockPlace): Boolean {
+        return packet.face != 255
+    }
+
+    private fun hasItem(packet: PacketPlayInBlockPlace): Boolean {
+        return packet.itemStack != null && packet.itemStack.item != null
+    }
+
+    private fun isBlock(packet: PacketPlayInBlockPlace): Boolean {
+        return packet.itemStack.item is ItemBlock
+    }
+
+    private fun isSlab(packet: PacketPlayInBlockPlace): Boolean {
+        return packet.itemStack.item is ItemStep
+    }
+
+    @Suppress("DEPRECATION")
+    private fun isTargetInteractable(worldServer: WorldServer, position: BlockPosition): Boolean {
+        val block = worldServer.getType(position).block
+        val material = Material.getMaterial(Block.getId(block))
+        return material in INTERACTABLE_BLOCKS
+    }
+
+    private fun isSneaking(): Boolean {
+        return player.isSneaking
+    }
+
+    private fun isPlayerInsideBlock(shifted: BlockPosition): Boolean {
+        val playerBoundingBox = AxisAlignedBB(
+            lastLocation.x - HALF_WIDTH,
+            lastLocation.y,
+            lastLocation.z - HALF_WIDTH,
+            lastLocation.x + HALF_WIDTH,
+            lastLocation.y + HEIGHT,
+            lastLocation.z + HALF_WIDTH
+        )
+        val blockBoundingBox = AxisAlignedBB(
+            shifted.x.toDouble(),
+            shifted.y.toDouble(),
+            shifted.z.toDouble(),
+            shifted.x + 1.0,
+            shifted.y + 1.0,
+            shifted.z + 1.0
+        )
+        return playerBoundingBox.b(blockBoundingBox)
     }
 }
