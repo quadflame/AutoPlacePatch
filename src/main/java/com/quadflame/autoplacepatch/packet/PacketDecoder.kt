@@ -234,7 +234,7 @@ class PacketDecoder(
         // Punishes the player for auto-place behavior
         if(settings.shouldPunish()) {
             val command = settings.getPunishmentCommand(player)
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command)
+            Bukkit.getScheduler().runTask(plugin) { -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command) }
         }
 
         // Patches the block placement to prevent the block from being placed
