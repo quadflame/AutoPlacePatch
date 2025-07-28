@@ -1,5 +1,5 @@
 # AutoPlacePatch [![Spigot Version](https://img.shields.io/badge/Spigot-1.8.8-orange.svg)](https://www.spigotmc.org/)
-A lightweight Spigot plugin that detects and prevents AutoPlace hacks in Minecraft 1.8.8. Originally developed for private use, now available to the public.
+A lightweight Spigot plugin that detects and optionally prevents AutoPlace hacks in Minecraft 1.8.8. Originally developed for private use, now available to the public.
 
 ## Features
 - Optimized detection of AutoPlace hacks
