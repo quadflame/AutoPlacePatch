@@ -20,15 +20,34 @@ A lightweight Spigot plugin that detects and optionally prevents AutoPlace hacks
 ## Configuration
 ```yaml
 patch:
+  # Should invalid block placements be cancelled?
+  # Disable for slight optimization
+  # This is not required if punishments are enabled
   cancel: false
 
 alerts:
+  # Should alerts be enabled?
+  # Sends a message to staff when a player is flagged for autoplace
   enabled: true
+
+  # Message to send when a player is flagged for autoplace
+  # Placeholders:
+  # %player% - Player's name
+  # %uuid% - Player's UUID
   message: "&c%player% has been flagged for autoplace!"
+
+  # Required permission to see alerts
   permission: "autoplacepatch.alerts"
 
 punishments:
+  # Should punishments be enabled?
+  # Punishes players for invalid block placements
   enabled: false
+
+  # Command to run when a player is flagged for autoplace
+  # Placeholders:
+  # %player% - Player's name
+  # %uuid% - Player's UUID
   command: "ban %player% 30d AutoPlace"
 ```
 
