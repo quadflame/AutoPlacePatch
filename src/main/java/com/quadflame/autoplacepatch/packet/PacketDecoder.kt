@@ -229,6 +229,8 @@ class PacketDecoder(
                 .filter { it.hasPermission(permission) }
                 .filter { plugin.userManager.getUser(it).alerts }
                 .forEach { it.sendMessage(message) }
+
+            Bukkit.getConsoleSender().sendMessage(message)
         }
 
         // Punishes the player for auto-place behavior
