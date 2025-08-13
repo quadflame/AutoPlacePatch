@@ -2,6 +2,8 @@ package com.quadflame.autoplacepatch.packet
 
 import com.quadflame.autoplacepatch.AutoPlacePatch
 import com.quadflame.autoplacepatch.config.Settings
+import com.viaversion.viaversion.api.Via
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import net.minecraft.server.v1_8_R3.*
@@ -153,13 +155,13 @@ class PacketDecoder(
     private fun handleFlyPacket(packet: PacketPlayInFlying): Boolean {
         sentBlock = false
 
-        if(packet.g()) {
+        if (packet.g()) {
             lastLocation.x = packet.a()
             lastLocation.y = packet.b()
             lastLocation.z = packet.c()
         }
 
-        if(packet.h()) {
+        if (packet.h()) {
             lastLocation.yaw = packet.d()
             lastLocation.pitch = packet.e()
         }
@@ -183,16 +185,16 @@ class PacketDecoder(
     private fun handleBlockPlacePacket(packet: PacketPlayInBlockPlace): Boolean {
 
         // Ignores players in adventure or spectator mode
-        if(isGameModeInvalid()) return true
+        if (isGameModeInvalid()) return true
 
         // Checks if no block placement
         if (!isBlockPlaced(packet) || !hasItem(packet)) return true
 
         // Checks if item is not a block
-        if(!isBlock(packet)) return true
+        if (!isBlock(packet)) return true
 
         // Ignores slabs
-        if(isSlab(packet)) return true
+        if (isSlab(packet)) return true
 
         val worldServer = (player.world as CraftWorld).handle
         val position = packet.a()
@@ -212,7 +214,7 @@ class PacketDecoder(
         requestedBlock = shifted
 
         // Checks bounding box for 1.9+ clients that send invalid block placements
-        if(isPlayerInsideBlock(shifted)) return true
+        if (isPlayerInsideBlock(shifted)) return true
 
         // Checks if block placement is valid
         if (!sentBlock) {
@@ -221,7 +223,7 @@ class PacketDecoder(
         }
 
         // Alerts staff members of auto-place behavior
-        if(settings.shouldAlert()) {
+        if (settings.shouldAlert()) {
             val message = settings.getAlertMessage(player)
             val permission = settings.getAlertPermission()
 
@@ -234,13 +236,13 @@ class PacketDecoder(
         }
 
         // Punishes the player for auto-place behavior
-        if(settings.shouldPunish()) {
+        if (settings.shouldPunish()) {
             val command = settings.getPunishmentCommand(player)
             Bukkit.getScheduler().runTask(plugin) { -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command) }
         }
 
         // Patches the block placement to prevent the block from being placed
-        if(settings.shouldCancel()) {
+        if (settings.shouldCancel()) {
             val entityPlayer = (player as CraftPlayer).handle
 
             val inventory = entityPlayer.inventory

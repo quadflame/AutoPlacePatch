@@ -2,6 +2,8 @@ package com.quadflame.autoplacepatch.packet
 
 import com.quadflame.autoplacepatch.AutoPlacePatch
 import com.quadflame.autoplacepatch.config.Settings
+import com.viaversion.viaversion.api.Via
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
 import io.netty.channel.ChannelPipeline
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer
 import org.bukkit.entity.Player
@@ -29,6 +31,13 @@ class PacketInjector(private val plugin: AutoPlacePatch) {
      * @param player The player to inject the packet decoder for
      */
     fun inject(player: Player) {
+
+        // Ignore if using a version without client tick packets
+        if (plugin.server.pluginManager.getPlugin("ViaVersion") != null) {
+            val protocolVersion = Via.getAPI().getPlayerVersion(player)
+            if (protocolVersion > ProtocolVersion.v1_8.version) return
+        }
+
         val decoder = PacketDecoder(player, plugin)
         packetDecoders += player to decoder
         getPipeline(player).addAfter("decoder", "autoplacepatch-decoder", decoder)
@@ -41,7 +50,7 @@ class PacketInjector(private val plugin: AutoPlacePatch) {
      */
     fun uninject(player: Player) {
         packetDecoders[player]?.let {
-            if(getPipeline(player).get("autoplacepatch-decoder") == null) return@let
+            if (getPipeline(player).get("autoplacepatch-decoder") == null) return@let
             getPipeline(player).remove("autoplacepatch-decoder")
         }
         packetDecoders -= player

@@ -1,6 +1,8 @@
 name: AutoPlacePatch
 version: '${project.version}'
 main: com.quadflame.autoplacepatch.AutoPlacePatch
+softdepend:
+  - ViaVersion
 commands:
   autoplacepatch:
     description: Main command for AutoPlacePatch
