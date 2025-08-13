@@ -10,6 +10,7 @@ A lightweight Spigot plugin that detects and optionally prevents AutoPlace hacks
 
 ## Current Bypasses
 - AutoPlacing with slabs
+- Client versions above 1.8.9
 
 ## Installation
 1. Download the latest release from the [releases page](https://github.com/quadflame/AutoPlacePatch/releases)
