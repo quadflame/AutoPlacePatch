@@ -183,6 +183,8 @@ class PacketDecoder(
      */
     @Suppress("DEPRECATION")
     private fun handleBlockPlacePacket(packet: PacketPlayInBlockPlace): Boolean {
+        // Skip all checks if player has bypass permission
+        if (player.hasPermission("autoplacepatch.bypass")) return true
 
         // Ignores players in adventure or spectator mode
         if (isGameModeInvalid()) return true
