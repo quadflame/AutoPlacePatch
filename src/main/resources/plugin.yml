@@ -1,6 +1,9 @@
 name: AutoPlacePatch
 version: '${project.version}'
 main: com.quadflame.autoplacepatch.AutoPlacePatch
+description: A plugin to detect AutoPlace hacks
+author: quadflame
+website: https://github.com/quadflame/AutoPlacePatch
 softdepend:
   - ViaVersion
 commands:
