@@ -37,9 +37,6 @@ alerts:
   # %uuid% - Player's UUID
   message: "&c%player% has been flagged for autoplace!"
 
-  # Required permission to see alerts
-  permission: "autoplacepatch.alerts"
-
 punishments:
   # Should punishments be enabled?
   # Punishes players for invalid block placements
@@ -58,7 +55,6 @@ punishments:
 | patch.cancel        | Cancel invalid block placements      | false                                        |
 | alerts.enabled      | Toggle staff notifications           | true                                         |
 | alerts.message      | Alert message with placeholders      | "&c%player% has been flagged for autoplace!" |
-| alerts.permission   | Permission node for receiving alerts | "autoplacepatch.alerts"                      |
 | punishments.enabled | Enable automatic punishments         | false                                        |
 | punishments.command | Punishment command with placeholders | "ban %player% 30d AutoPlace"                 |
 

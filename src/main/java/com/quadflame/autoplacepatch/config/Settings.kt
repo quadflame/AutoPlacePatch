@@ -65,17 +65,6 @@ class Settings(private val plugin: AutoPlacePatch) {
     }
 
     /**
-     * Gets the permission node required for staff to receive auto-place alerts.
-     *
-     * Configuration path: `alerts.permission`
-     *
-     * @return The permission node string
-     */
-    fun getAlertPermission(): String {
-        return config.getString("alerts.permission")
-    }
-
-    /**
      * Checks if punishments are enabled for auto-place violations.
      *
      * Configuration path: `punishments.enabled`

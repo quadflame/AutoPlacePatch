@@ -15,9 +15,6 @@ alerts:
   # %uuid% - Player's UUID
   message: "&c%player% has been flagged for autoplace!"
 
-  # Required permission to see alerts
-  permission: "autoplacepatch.alerts"
-
 punishments:
   # Should punishments be enabled?
   # Punishes players for invalid block placements

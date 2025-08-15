@@ -1,9 +1,8 @@
 package com.quadflame.autoplacepatch.packet
 
 import com.quadflame.autoplacepatch.AutoPlacePatch
+import com.quadflame.autoplacepatch.config.Permissions
 import com.quadflame.autoplacepatch.config.Settings
-import com.viaversion.viaversion.api.Via
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import net.minecraft.server.v1_8_R3.*
@@ -184,7 +183,7 @@ class PacketDecoder(
     @Suppress("DEPRECATION")
     private fun handleBlockPlacePacket(packet: PacketPlayInBlockPlace): Boolean {
         // Skip all checks if player has bypass permission
-        if (player.hasPermission("autoplacepatch.bypass")) return true
+        if (player.hasPermission(Permissions.BYPASS)) return true
 
         // Ignores players in adventure or spectator mode
         if (isGameModeInvalid()) return true
@@ -227,10 +226,9 @@ class PacketDecoder(
         // Alerts staff members of auto-place behavior
         if (settings.shouldAlert()) {
             val message = settings.getAlertMessage(player)
-            val permission = settings.getAlertPermission()
 
             Bukkit.getOnlinePlayers()
-                .filter { it.hasPermission(permission) }
+                .filter { it.hasPermission(Permissions.ALERTS) }
                 .filter { plugin.userManager.getUser(it).alerts }
                 .forEach { it.sendMessage(message) }
 
@@ -240,7 +238,7 @@ class PacketDecoder(
         // Punishes the player for auto-place behavior
         if (settings.shouldPunish()) {
             val command = settings.getPunishmentCommand(player)
-            Bukkit.getScheduler().runTask(plugin) { -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command) }
+            Bukkit.getScheduler().runTask(plugin) { Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command) }
         }
 
         // Patches the block placement to prevent the block from being placed

@@ -1,6 +1,7 @@
 package com.quadflame.autoplacepatch.command
 
 import com.quadflame.autoplacepatch.AutoPlacePatch
+import com.quadflame.autoplacepatch.config.Permissions
 import org.bukkit.ChatColor.GREEN
 import org.bukkit.ChatColor.RED
 import org.bukkit.command.Command
@@ -45,6 +46,7 @@ class AutoPlacePatchCommand(private val plugin: AutoPlacePatch) : CommandExecuto
 
         when (args.first().lowercase()) {
             "alerts" -> {
+                if (!sender.hasPermission(Permissions.ALERTS)) return true
 
                 if(sender !is Player) {
                     sender.sendMessage(onlyPlayersAlerts)
@@ -61,6 +63,8 @@ class AutoPlacePatchCommand(private val plugin: AutoPlacePatch) : CommandExecuto
             }
 
             "reload" -> {
+                if (!sender.hasPermission(Permissions.RELOAD)) return true
+
                 plugin.reloadConfig()
                 sender.sendMessage(reloaded)
             }
