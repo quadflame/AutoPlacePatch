@@ -9,3 +9,11 @@ commands:
     permission: autoplacepatch.command
     aliases:
     - app
+
+permissions:
+  autoplacepatch.command:
+    description: Allows use of /autoplacepatch command
+    default: op
+  autoplacepatch.bypass:
+    description: Bypasses all auto-place checks
+    default: op
